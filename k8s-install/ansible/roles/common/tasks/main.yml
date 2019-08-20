@@ -35,8 +35,11 @@
     state: present
 
 - name: Append bridge-iptables file
-  shell: |
-    echo '1' >> /proc/sys/net/bridge/bridge-nf-call-iptables
+  command: "{{ item }}"
+  with_items:
+    - echo "1" > /proc/sys/net/ipv4/ip_forward
+    - echo '1' >> /proc/sys/net/bridge/bridge-nf-call-iptables
+    - sysctl --system
 
 - name: Copy kuberenetes repo file
   copy: 
@@ -46,13 +49,13 @@
 - name: Install docker and kubeadm
   yum:
     name: "{{ item }}"
-    state: latest
   with_items:
-     - docker
+     - docker-ce-18.06.1.ce-3.el7
      - kubeadm
+     - kubectl
 
 - name: Make sure docker is running
   service: name=docker state=started enabled=yes
 
 - name: Make sure kubelet is running
-  service: name=kubelet state=started enabled=yes
+  service: name=kubelet enabled=yes
