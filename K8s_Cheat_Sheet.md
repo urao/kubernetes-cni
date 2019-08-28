@@ -3,9 +3,15 @@
 
 1. Below are some of the useful commands 
 ```
+kubectl explain deployment
+kubectl explain deployment --recursive
+kubectl explain deployment.spec.strategy
+```
+```
 kubectl get namespace
 kubectl get pods --all-namespaces
 kubectl get pods --namespace=ns-demo -o wide
+kubectl get pods -n ns-demo -o wide
 kubectl config view
 kubectl get node k8snode01 -o yaml
 kubectl get pods $PODNAME -o yaml
@@ -42,9 +48,11 @@ kubectl rollout resume deployment.v1.apps/nginx-deployment
 kubectl get rs -w
 kubectl rollout status deployment.v1.apps/nginx-deployment
 kubectl patch deployment.v1.apps/nginx-deployment -p '{"spec":{"progressDeadlineSeconds":600}}'
+kubectl describe jobs/job-pi
+pods=$(kubectl get pods --selector=job-name=job-pi --output=jsonpath='{.items[*].metadata.name}';echo $pods
 
 
 ```
 
 ## Reference
-[Kubernetes Deployment Guide](https://kubernetes.io/)
+[Kubernetes](https://kubernetes.io/)
