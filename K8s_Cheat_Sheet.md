@@ -50,8 +50,35 @@ kubectl rollout status deployment.v1.apps/nginx-deployment
 kubectl patch deployment.v1.apps/nginx-deployment -p '{"spec":{"progressDeadlineSeconds":600}}'
 kubectl describe jobs/job-pi
 pods=$(kubectl get pods --selector=job-name=job-pi --output=jsonpath='{.items[*].metadata.name}';echo $pods
-
-
+kubectl get pods $PODNAME -o yaml --export
+kubectl exec -it $PODNAME -- cat /etc/resolv.conf
+kubectl get pods -l run=svc-nginx -o wide
+kubectl get pods -l run=svc-nginx -o yaml | grep podIP
+kubectl get svc
+kubectl get svc $SVCNAME
+kubectl describe svc $SVCNAME
+kubectl get endpoints
+kubectl get endpoints $SVCNAME
+kubectl scale deployment $SVCNAME --replicas=0
+kubectl scale deployment $SVCNAME --replicas=3
+kubectl get services kube-dns --namespace=kube-system
+kubectl get svc $SVCNAME -o yaml | grep nodePort -C 5
+kubectl delete pod -n=kube-system coredns-fb8b8dccf-8ggcf
+kubectl get pods -n kube-system -oname |grep coredns |xargs kubectl delete -n kube-system
+kubectl get deployment coredns -n kube-system -o yaml > dns.yaml
+kubectl get crds
+kubectl exec -it $PODNAME -- /bin/bash
+kubectl get virtualservices   
+kubectl get destinationrules 
+kubectl get gateway         
+kubectl get namespace -L istio-injection
+kubectl -n istio-system port-forward \
+  $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') \
+  3000:3000 &
+kubectl get virtualservice
+kubectl get secrets
+kubectl create namespace <ns-name>
+kubectl get pod,svc -o wide -n kube-system
 ```
 
 ## Reference
