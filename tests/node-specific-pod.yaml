@@ -1,0 +1,17 @@
+# Run below command
+# kubectl label nodes k8snode02 node02=spindisk
+apiVersion: v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Pod
+metadata:
+  name: node2-nginx-demo
+  labels:
+    env: testnode
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    imagePullPolicy: IfNotPresent
+    ports:
+        - containerPort: 80
+  nodeSelector: 
+    node02: spindisk

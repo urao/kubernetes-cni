@@ -1,0 +1,22 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: ReplicaSet
+metadata:
+  name: replica-frontend
+  labels:
+    app: rguestbook
+    tier: rfrontend
+  annotations:
+    imageregistry: "https://hub.docker.io/"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: rfrontend
+  template:
+    metadata: 
+      labels: 
+        tier: rfrontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google_samples/gb-frontend:v3

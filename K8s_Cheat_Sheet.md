@@ -8,6 +8,8 @@ kubectl explain deployment --recursive
 kubectl explain deployment.spec.strategy
 ```
 ```
+kubectl cluster-info dump
+kubectl get componentstatus
 kubectl get namespace
 kubectl get pods --all-namespaces
 kubectl get pods --namespace=ns-demo -o wide
@@ -49,7 +51,7 @@ kubectl get rs -w
 kubectl rollout status deployment.v1.apps/nginx-deployment
 kubectl patch deployment.v1.apps/nginx-deployment -p '{"spec":{"progressDeadlineSeconds":600}}'
 kubectl describe jobs/job-pi
-pods=$(kubectl get pods --selector=job-name=job-pi --output=jsonpath='{.items[*].metadata.name}';echo $pods
+pods=$(kubectl get pods --selector=job-name=job-pi --output=jsonpath='{.items[*].metadata.name}');echo $pods
 kubectl get pods $PODNAME -o yaml --export
 kubectl exec -it $PODNAME -- cat /etc/resolv.conf
 kubectl get pods -l run=svc-nginx -o wide
@@ -79,6 +81,9 @@ kubectl get virtualservice
 kubectl get secrets
 kubectl create namespace <ns-name>
 kubectl get pod,svc -o wide -n kube-system
+kubectl get MeshPolicy default
+kubectl get rule -n istio-system
+kubectl run np-web --image=nginx --labels app=web --expose --port 80
 ```
 
 ## Reference

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod-name
+  labels:
+    app: myapp
+spec:
+  hostname: myapp-pod-name
+  subdomain: local-subdomain
+  containers:
+  - name: myapp-container
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
+  dnsPolicy: "None"
+  dnsConfig:
+    nameservers:
+      - 1.2.3.4
+    searches:
+      - ns1.svc.cluster-domain.example
+    options:
+      - name: ndots
+        value: "2"
+      - name: edns0

@@ -1,0 +1,22 @@
+apiVersion: v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Namespace
+metadata:
+  name: ns-demo
+
+---
+apiVersion: v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Pod
+metadata:
+  name: label-nginx-demo
+  namespace: ns-demo
+  labels:
+    environment: lab
+    app: nginx
+  annotations:
+    imageregistry: "https://hub.docker.io/"
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9
+    ports:
+        - containerPort: 80
