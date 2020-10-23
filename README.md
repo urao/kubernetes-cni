@@ -1,2 +1,3 @@
-# kubernetes-learnings
-Kubernetes and related technologies
+# Kubernetes-learnings
+
+k8s and related technologies
