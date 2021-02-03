@@ -1,0 +1,171 @@
+---
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: swap
+    fstype: swap
+    state: absent 
+
+- name: Disable swapfile 
+  command: swapoff -a
+
+- name: Delete swapfile 
+  file: 
+    name: /swapfile
+    state: absent
+
+- name: Install ntpd service
+  yum:
+    name: ntp
+    state: present
+    
+- name: Stop  ntpd service
+  service:
+    name: ntpd
+    state: stopped
+    
+- name: Sync time service
+  command: ntpd -gq
+    
+- name: Start  ntpd service
+  service:
+    name: ntpd
+    state: restarted
+    enabled: yes
+
+- name: Firewalled is disabled  
+  systemd:
+    name: firewalld
+    enabled: no
+
+- name: Firewalled is stopped  
+  systemd:
+    name: firewalld
+    state: stopped
+
+- name: Change sysctl settings
+  sysctl:
+    name: '{{ item.key }}'
+    value: '{{ item.value }}'
+    sysctl_set: yes
+    state: present
+    reload: yes
+    ignoreerrors: yes
+  with_dict: '{{ sysctl_config }}'
+
+- name: Add modprobe br_netfilter
+  command: modprobe br_netfilter
+
+- name: Install epel-release package
+  yum:
+    name: epel-release
+    state: present
+
+- name: Uninstall existing old docker packages if exists
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items: 
+      - docker
+      - docker-client
+      - docker-common
+
+- name: Install docker dependencies 
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ k8s_docker_pkgs }}"
+
+- name: Add docker repo
+  when: false
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: 0644
+
+- name: Add docker repo
+  yum_repository:
+    name: docker
+    description: Docker repo
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    baseurl: https://download.docker.com/linux/centos/7/$basearch/edge
+    gpgkey:
+      - https://download.docker.com/linux/centos/gpg
+
+- name: Update yum
+  command: yum update -y
+
+- name: Install docker
+  yum:
+    name:
+      - "docker-ce-{{ k8s_docker_version }}.ce"
+      - containerd.io
+    state: present
+  register: res
+  until: res is successful
+
+- name: Install docker-py
+  pip:
+    name: docker-py
+
+- name: Check /etc/docker folder exists
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Start docker service
+  systemd:
+    name: docker
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Add kubernetes repo
+  yum_repository:
+    name: kubernetes
+    description: Kubernetes repo
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    sslverify: false
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    
+- name: Add k8s GPG keys
+  when: false
+  rpm_key:
+    key: "{{ item }}"
+    state: present
+  register: k8s_rpm_key
+  with_items:
+    - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+    - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    
+- name: Make cache if k8s key changed
+  when: false
+  command: "yum -q makecache -y --disablerepo='*' --enablerepo='kubernetes'"
+  when: k8s_rpm_key is changed
+  args:
+    warn: false
+
+- name: Login to docker registry
+  when: false
+  docker_login:
+    username: mahesh
+    password: "{{ vault['docker']['password'] }}"
+    email: "{{ vault['docker']['email'] }}"
+    reauthorize: yes
+
+- name: Install k8s packages 
+  yum:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubectl 

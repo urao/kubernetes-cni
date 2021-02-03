@@ -1,0 +1,49 @@
+---
+- name: Start docker service
+  service:
+    name: docker
+    state: started
+    
+- name: Add vagrant user to docker group
+  user: 
+    name: vagrant
+    group: docker
+    
+- name: Start  kubelet service
+  service:
+    name: kubelet
+    enabled: yes
+    state: restarted
+
+- name: Get worker second interface address
+  set_fact:
+    worker_node_ipaddress: "{{ ansible_eth1.ipv4.address }}"
+
+- name: Configure worker node IP 
+  lineinfile:
+    path: /etc/default/kubelet
+    create: yes
+    line: KUBELET_EXTRA_ARGS=--node-ip={{ worker_node_ipaddress }}
+
+- name: Re-start  kubelet service
+  service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+
+- name: Generate k8s join command
+  command: kubeadm token create --print-join-command
+  register: join_cmd_op
+  delegate_to: "{{ groups['master'][0] }}"
+
+- debug: var=join_cmd_op.stdout_lines[0]
+
+- name: Print kubeadm join command
+  set_fact:
+    kubeadm_join_cmd: "{{ join_cmd_op.stdout_lines[0] }}"
+
+- name: Do kubeadm join with command line
+  command: "{{ kubeadm_join_cmd }} --ignore-preflight-errors=all"
+  args:
+    creates: /etc/kubernetes/kubelet.conf
+  register: kubeadm_join_res

@@ -1,0 +1,54 @@
+---
+
+# server details
+# box image
+# ssh key file
+# ansible user
+
+servers:
+  - hostname: k8smaster
+    ipaddress: 192.168.0.185
+    ram: 6288
+    cpu: 4
+    group: master
+  - hostname: k8snode01
+    ipaddress: 192.168.0.186
+    ram: 2048
+    cpu: 2
+    group: worker
+
+#box_image: "hoot/centos7-minimal"
+box_image: "generic/centos7"
+ssh_key_file: "~/.ssh/id_rsa"
+
+ansible_user: vagrant
+
+sysctl_config:
+  net.ipv4.ip_forward: 1
+  net.bridge.bridge-nf-call-iptables: 1
+
+k8s_docker_pkgs:
+  - yum-utils
+  - device-mapper-persistent-data
+  - lvm2
+  - policycoreutils-python
+  - python-pip
+
+docker_opts:
+  debug: false
+  ip-forward: true
+  ip-masq: true
+  iptables: true
+  max-concurrent-downloads: 3
+  max-concurrent-uploads: 5
+  selinux-enabled: false
+  exec-opts: ["native.cgroupdriver=systemd"]
+  log-driver: "json-file"
+  log-opts: { max-size: 100m }
+  storage-driver: "overlay2"
+  storage-opts: [ "overlay2.override_kernel_check = true" ]
+  swarm-default-advertise-addr: ""
+
+k8s_docker_version: 18.06.3
+pod_network_cidr: 10.222.0.0/16
+svc_network_cidr: 10.111.0.0/16

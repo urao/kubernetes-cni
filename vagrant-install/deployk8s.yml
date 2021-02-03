@@ -1,0 +1,29 @@
+---
+#This playbook deploys contrail+k8s 
+
+- name: Install all the pre-requisties to deploy the cluster
+  hosts: all
+  become: true
+  vars_files:
+    - vagrant.yml
+  gather_facts: yes
+  roles:
+    - common
+
+- name: Install master packages, start services on nodes
+  hosts: master
+  become: true
+  vars_files:
+    - vagrant.yml
+  gather_facts: yes
+  roles:
+    - master
+
+- name: Install worker packages, start services on nodes
+  hosts: workers
+  become: true
+  vars_files:
+    - vagrant.yml
+  gather_facts: yes
+  roles:
+    - worker
