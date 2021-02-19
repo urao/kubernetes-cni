@@ -12,7 +12,7 @@
 
 
 #### CoreDNS crashing
-1. Run below commands
+1. Run below commands to check errors
 - kubectl get pods -n kube-system
 - kubectl -n kube-system describe pod coredns-576cbf47c7-xxxx
 - kubectl -n kube-system logs -f coredns-576cbf47c7-nxxx
