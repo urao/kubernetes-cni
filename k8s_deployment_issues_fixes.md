@@ -9,3 +9,16 @@
 
 #### gpg: no valid OpenPGP data found.
 1. Do this `curl -4 -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -`
+
+
+#### CoreDNS crashing
+1. Run below commands
+- kubectl get pods -n kube-system
+- kubectl -n kube-system describe pod coredns-576cbf47c7-xxxx
+- kubectl -n kube-system logs -f coredns-576cbf47c7-nxxx
+- kubectl -n kube-system describe pod kube-apiserver-masternode
+2. Disable the CoreDNS loop detection
+3. Edit the CoreDNS configMap 
+   `kubectl -n kube-system edit configmap coredns`
+3. Remove CoreDNS pods
+   `kubectl -n kube-system delete pod -l k8s-app=kube-dns`
