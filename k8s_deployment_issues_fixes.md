@@ -22,3 +22,13 @@
    `kubectl -n kube-system edit configmap coredns`
 3. Remove CoreDNS pods
    `kubectl -n kube-system delete pod -l k8s-app=kube-dns`
+
+#### Get the list of the taints 
+```
+kubectl get nodes -o json | jq '.items[].spec'
+kubectl get nodes -o json | jq '.items[].spec.taints'
+kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints --no-headers
+kubectl get nodes -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.taints[*].key}{"\n"}{end}' 
+kubectl get nodes \
+-o custom-columns=NAME:.metadata.name,ARCH:.status.nodeInfo.architecture,KERNEL:.status.nodeInfo.kernelVersion,KUBLET:.status.nodeInfo.kubeletVersion,CPU:.status.capacity.cpu,RAM:.status.capacity.memory
+```
