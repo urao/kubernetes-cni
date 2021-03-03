@@ -1,0 +1,96 @@
+---
+- name: Uninstall existing old docker packages if exists
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items: 
+      - docker
+      - docker-client
+      - docker-common
+      - docker-engine
+
+- name: Install docker dependencies 
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ k8s_docker_pkgs }}"
+
+- name: Add docker repo
+  when: false
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: 0644
+
+- name: Add docker repo
+  yum_repository:
+    name: docker
+    description: Docker repo
+    file: docker
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    baseurl: https://download.docker.com/linux/centos/7/$basearch/edge
+    gpgkey:
+      - https://download.docker.com/linux/centos/gpg
+
+- name: Update yum
+  command: yum update -y
+
+- name: Install docker
+  yum:
+    name:
+      #- "containerd-io-{{ containerd_version }}"
+      - "docker-ce-{{ k8s_docker_version }}"
+    state: present
+  register: res
+  until: res is successful
+
+- name: Install docker-py
+  pip:
+    name: docker-py
+
+- name: Configure docker service
+  template:
+    src: docker.j2
+    dest: /etc/default/docker
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Check /etc/docker folder exists
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Copy contents to daemon.json file
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+
+- name: Create docker service.d folder 
+  file: 
+    path: /etc/systemd/system/docker.service.d/
+    state: directory
+    mode: 0755
+
+- name: Start docker service
+  systemd:
+    name: docker
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Add vagrant user to docker group
+  user:
+    name: vagrant
+    group: docker
+
+- name: Login to docker registry
+  when: false
+  docker_login:
+    username: mahesh
+    password: "{{ vault['docker']['password'] }}"
+    email: "{{ vault['docker']['email'] }}"
+    reauthorize: yes

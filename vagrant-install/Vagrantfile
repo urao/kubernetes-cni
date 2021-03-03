@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
     end
     f.write "\n"
-    f.write "[all]\n"
+    f.write "[cluster]\n"
     servers.each do |cfg|
       f.write "#{cfg['hostname']}\n"
     end
@@ -69,7 +69,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define server['hostname'] do |conf|
       conf.vm.box = box_img.to_s
       conf.vm.hostname = server['hostname']
-      #config.disksize.size = '50GB'
+      config.disksize.size = '40GB'
 
       #network
       net_cfg = {}
@@ -79,7 +79,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       else
         net_cfg[:type] = 'dhcp'
       end
-      conf.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)", ip: server['ipaddress']
+      #conf.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)", ip: server['ipaddress']
+      #conf.vm.network "public_network", bridge: "Intel(R) Wi-Fi 6 AX200 160MHz", adapter:"1", ip: server['ipaddress']
+      conf.vm.network "public_network", bridge: "Intel(R) Wi-Fi 6 AX200 160MHz", ip: server['ipaddress'], netmask: "255.255.255.0"
+      #  auto_config: false
       conf.vm.network "forwarded_port", guest: 22, host: "#{2810 + index}"
 
       #compute
@@ -92,20 +95,51 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
       end
 
+      conf.trigger.before :up do |trigger|
+        trigger.name = "Hello !!!"
+        trigger.info = "Booting up the machine!!!!!"
+      end
       #ssh keys
-      conf.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
+      #conf.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
+      conf.ssh.private_key_path = ["C:/Users/mumamaheshwarara/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
       conf.ssh.insert_key = false
       conf.vm.provision "file", source: vars['ssh_key_file'] + ".pub", destination: "~/.ssh/authorized_keys"
+      #append my laptop keys
+      conf.vm.provision "shell", inline: <<-SHELL
+        echo "#{vars['urao_mbp_ssh_key']}" >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+      #conf.vm.provision "file", source: vars['rc_local_file'], destination: "/tmp/rc-local.sh"
       #update hosts file
-      conf.vm.provision "setup-hosts", :type => "shell", :path => "scripts/setup-hosts.sh" do |s|
+      conf.vm.provision "setup-hosts", :type => "shell", :path => "./scripts/setup-hosts.sh" do |s|
         s.args = ["eth1"]
       end
-
+      conf.vm.provision "shell", path: "./scripts/setup-root-login.sh"
+      conf.vm.provision "shell", path: "./scripts/setup-dns.sh", run: 'always'
+      #disable eth0, add eth1 default route, resolv.conf
+      #conf.vm.provision "shell", run: "always", inline: <<-SHELL
+        #ifconfig eth0 down
+        #route add default gw 192.168.0.1
+        #echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+      #SHELL
+      conf.trigger.after :up do |trigger|
+        trigger.name = "Bootup of the machine is done"
+        trigger.info = "Machine is up!"
+        #trigger.run_remote = {inline: "sh /tmp/rc-local.sh"}
+      end
     #CONF LOOP
     end
   #SERVERS LOOP
   end
   #ANSIBLE DEPLOYMENT
-
+  if !Vagrant::Util::Platform.windows?
+    conf.vm.provision "ansible" do |ansible|
+      ansible.inventory_path = ansible_inventory_path
+      ansible.v = "v"
+      ansible.limit = "all"
+      ansible.playbook = ansible_playbook
+    end
+  end
+  #RUN SCRIPT to install pkgs via ANSIBLE 
+  #conf.vm.provision :shell, path:"./scripts/setup-k8s.sh"
 #END
 end

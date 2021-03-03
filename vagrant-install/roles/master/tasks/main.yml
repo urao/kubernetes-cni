@@ -1,74 +1,68 @@
 ---
-- name: Start docker service
-  service:
-    name: docker
-    state: started
-
-- name: Add vagrant user to docker group
-  user: 
-    name: vagrant
-    group: docker
-    
-- name: Start  kubelet service
-  service:
-    name: kubelet
-    enabled: yes
-    state: restarted
-
-- debug: var=ansible_eth1.ipv4.address
-
-- name: Get master second interface address
-  set_fact:
-    master_node_ipaddress: "{{ ansible_eth1.ipv4.address }}"
-
-- name: Configure master node IP 
-  lineinfile:
-    path: /etc/default/kubelet
-    create: yes
-    line: KUBELET_EXTRA_ARGS=--node-ip={{ master_node_ipaddress }}
-
-- name: Re-start  kubelet service
-  service:
-    name: kubelet
-    daemon_reload: yes
-    state: restarted
-
 - name: Check if cluster is already initialized
   stat:
     path: /etc/kubernetes/admin.conf
   register: k8s_cluster_res
 
-- name: Set state of the cluster
-  set_fact:
-    k8s_cluster_state: false
-  when:
-    - not k8s_cluster_res['stat']['exists']
+- name: Deploy master node if needed
+  block:
+    - name: Reset k8s components
+      shell: "kubeadm reset --force"
+    
+    - debug: var=ansible_eth1.ipv4.address
 
-- name: Set state of the cluster
-  set_fact:
-    k8s_cluster_state: true
-  when:
-    - k8s_cluster_res['stat']['exists']
+    - name: Get master second interface address
+      set_fact:
+        master_node_ipaddress: "{{ ansible_eth1.ipv4.address }}"
+    
+    - name: Configure master node IP 
+      lineinfile:
+        path: /etc/default/kubelet
+        create: yes
+        line: KUBELET_EXTRA_ARGS=--node-ip={{ master_node_ipaddress }}
+    
+    - name: Initialize k8s cluster 
+      command: kubeadm init \
+               --apiserver-advertise-address={{ master_node_ipaddress }} \
+               --kubernetes-version={{ k8s_version }} \
+               --pod-network-cidr={{ pod_network_cidr }} \
+               --service-cidr={{ svc_network_cidr }} \
+               --apiserver-cert-extra-sans={{ master_node_ipaddress }} \
+               --node-name={{ inventory_hostname_short }}
+      environment: 
+        no_proxy: "$no_proxy,.svc,.svc.cluster.local"
+      register: init_cluster_res
+    
+    - name: Setup kubeconfig for vagrant user 
+      when: init_cluster_res is succeeded
+      command: '{{ item }}'
+      with_items: 
+        - mkdir -p /home/vagrant/.kube
+        - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+        - chown vagrant:vagrant /home/vagrant/.kube/config
+    
+    - name: Generate k8s join command
+      command: kubeadm token create --print-join-command
+      register: join_cmd_op
 
-- name: Initialize k8s cluster 
-  command: kubeadm init --apiserver-advertise-address={{ master_node_ipaddress }} \
-               --apiserver-cert-extra-sans={{ master_node_ipaddress }} --node-name={{ inventory_hostname_short }} \
-               --pod-network-cidr={{ pod_network_cidr }} --service-cidr={{ svc_network_cidr }} \
-               --image-repository registry.aliyuncs.com/google_containers
-  when: not k8s_cluster_state|bool
+    #- debug: var=join_cmd_op.stdout_lines[0]
+    
+    - name: Deploy k8s dashboard 
+      when: init_cluster_res is succeeded and enable_dashboard
+      command: |
+        kubectl --kubeconfig=/home/vagrant/.kube/config \
+            apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended.yaml
+      register: k8s_dashboard_res
+      until: k8s_dashboard_res.rc == 0
+      retries: 5
+      delay: 2
+      ignore_errors: true
+  when: not k8s_cluster_res.stat.exists
+  run_once: yes
 
-- name: Setup kubeconfig for vagrant user 
-  command: '{{ item }}'
-  with_items: 
-    - mkdir -p /home/vagrant/.kube
-    - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-    - chown vagrant:vagrant /home/vagrant/.kube/config
-
-- name: Generate k8s join command
-  command: kubeadm token create --print-join-command
-  register: join_cmd_op
-
-- debug: var=join_cmd_op.stdout_lines[0]
-
-  #- name: Copy above output into a file
-  #action: copy content={{ join_cmd_op.stdout_lines[0] }} dest="/temp/join-cmd.out"
+- name: Start  kubelet service
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+    daemon_reload: yes

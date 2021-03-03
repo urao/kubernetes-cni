@@ -1,29 +1,53 @@
 ---
 #This playbook deploys contrail+k8s 
 
-- name: Install all the pre-requisties to deploy the cluster
-  hosts: all
+- name: Install all the pre-requisties on cluster nodes to deploy k8s
+  hosts: cluster
   become: true
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
   vars_files:
     - vagrant.yml
-  gather_facts: yes
   roles:
     - common
+    - { role: docker, when: container_engine == 'docker' }
+    - { role: containerd, when: container_engine == 'containerd' }
+    - { role: rkt, when: container_engine == 'rkt' }
+    - { role: kubernetes, when: deploy_k8s }
 
-- name: Install master packages, start services on nodes
-  hosts: master
+- name: Kubeadm init on master, and start services 
+  hosts: masters
   become: true
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
   vars_files:
     - vagrant.yml
-  gather_facts: yes
   roles:
-    - master
+    - { role: master, when: deploy_k8s }
 
-- name: Install worker packages, start services on nodes
+- name: Join worker node and start services 
   hosts: workers
   become: true
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
   vars_files:
     - vagrant.yml
-  gather_facts: yes
   roles:
-    - worker
+    - { role: worker, when: deploy_k8s }
+
+#CNI and extras
+- name: Install CNI and extras on master node
+  hosts: masters
+  #become: true
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  vars_files:
+    - vagrant.yml
+  roles:
+    - { role: cni, when: install_contrail_cni }
+    - { role: metallb, when: install_metallb }
+    - { role: helm, when: install_helm }

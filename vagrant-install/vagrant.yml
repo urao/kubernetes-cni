@@ -8,24 +8,30 @@
 servers:
   - hostname: k8smaster
     ipaddress: 192.168.0.185
-    ram: 6288
+    ram: 8192
     cpu: 4
-    group: master
+    disksize: 40G
+    group: masters
   - hostname: k8snode01
     ipaddress: 192.168.0.186
-    ram: 2048
+    ram: 4096
     cpu: 2
-    group: worker
+    disksize: 20G
+    group: workers
 
 #box_image: "hoot/centos7-minimal"
+#box_image: "bento/centos-8"
 box_image: "generic/centos7"
-ssh_key_file: "~/.ssh/id_rsa"
+#ssh_key_file: "~/.ssh/id_rsa"
+ssh_key_file: "C:/cygwin64/home/mumamaheshwarara/.ssh/id_rsa"
+rc_local_file: ./scripts/rc-local-file.sh
 
 ansible_user: vagrant
 
 sysctl_config:
   net.ipv4.ip_forward: 1
   net.bridge.bridge-nf-call-iptables: 1
+  vm.swappiness: 0
 
 k8s_docker_pkgs:
   - yum-utils
@@ -33,6 +39,10 @@ k8s_docker_pkgs:
   - lvm2
   - policycoreutils-python
   - python-pip
+  - lsof
+  - unzip
+  - net-tools
+  - git
 
 docker_opts:
   debug: false
@@ -49,6 +59,43 @@ docker_opts:
   storage-opts: [ "overlay2.override_kernel_check = true" ]
   swarm-default-advertise-addr: ""
 
-k8s_docker_version: 18.06.3
-pod_network_cidr: 10.222.0.0/16
-svc_network_cidr: 10.111.0.0/16
+#kubernetes
+
+#supported engines, docker, containerd, rkt
+container_engine: docker
+#k8s_docker_version: 18.09.9
+k8s_docker_version: 19.03.11
+enable_dashboard: true
+k8s_version: 1.18.9
+containerd_version: 1.2.13
+k8s_services:
+  - kubelet
+
+linux_kernel_url: https://linuxsoft.cern.ch/cern/centos/7/updates/x86_64/Packages/
+kernel_version: kernel-3.10.0-1127.13.1.el7.x86_64.rpm 
+
+urao_mbp_ssh_key: ""
+
+#Contrail related
+
+pod_network_cidr: 10.32.0.0/24
+svc_network_cidr: 10.96.0.0/24
+ipfabric_network_cidr: 192.168.0.0/24
+physical_intf: eth1
+vrouter_gw_ip : 192.168.0.1
+contrail_registry_user: JNPR-XXXXXXXXXXX
+contrail_registry_passwd: XXXXXXXXXXXXX
+tmp_dir: /tmp/kubernetes/
+contrail_no_analytics: true
+contrail_version: 2011.138
+
+# metallb
+metallb_version: v0.7.3
+metallb_url_yml: "https://raw.githubusercontent.com/google/metallb/{{ metallb_version }}/manifests/metallb.yaml"
+metallb_address_space: 192.168.0.200-192.168.0.210
+
+# enable k8s/extras
+deploy_k8s: true
+install_contrail_cni: true
+install_metallb: false
+install_helm: false

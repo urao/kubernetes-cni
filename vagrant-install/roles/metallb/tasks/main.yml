@@ -1,0 +1,17 @@
+---
+- name: "Install MetalLB"
+  shell: "kubectl apply -f {{ metallb_url_yml }}"
+
+- name: "Create configmap file"
+  template:
+    src: metallb-l2-config.yml.j2
+    dest: "{{ tmp_dir }}/metallb-layer-2-config.yml"
+
+- name: "Create MetalLB configmap in kubernetes"
+  shell: "kubectl apply -f {{ tmp_dir }}/metallb-l2-config.yml"
+
+#- name: "Clean-up"
+#  file:
+#    path: "{{ tmp_dir }}"
+#    state: absent
+#  ignore_errors: yes

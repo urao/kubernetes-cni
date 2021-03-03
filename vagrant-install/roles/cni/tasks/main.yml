@@ -1,0 +1,56 @@
+---
+- name: Create secret for contrail registry
+  when: true
+  shell: |
+    kubectl create secret docker-registry contrail-registry \
+       --docker-server=hub.juniper.net/contrail \
+       --docker-username={{ contrail_registry_user }} \
+       --docker-password={{ contrail_registry_passwd }} \
+       --docker-email=urao@juniper.net -n kube-system
+
+- name: Check if contrail daemonset is working
+  shell: |
+    kubectl get ds --all-namespaces | grep contrail
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: true
+  register: check_cni
+  ignore_errors: true
+  changed_when: false
+
+- name: Deploy contrail CNI if it does not exists
+  block:
+
+    - name: Create k8s cni addon directory
+      file: 
+        path: "{{ tmp_dir }}"
+        state: directory
+        mode: 0755
+
+    - name: Get master second interface address
+      set_fact:
+        master_node_ipaddress: "{{ ansible_eth1.ipv4.address }}"
+    
+    - name: Copy contrail with no_analytics single yml file
+      template:
+        src: "contrail_no_analytics.yml.j2"
+        dest: "{{ tmp_dir }}/contrail_no_analytics.yml"
+      when: contrail_no_analytics|bool
+    
+    - name: Copy contrail with analytics single yml file
+      template:
+        src: "contrail_all.yml.j2"
+        dest: "{{ tmp_dir }}/contrail_all.yml"
+      when: not contrail_no_analytics
+
+    - name: Create contrail CNI daemonset
+      command: kubectl apply -f {{ tmp_dir }}/
+      delegate_to: "{{ groups['masters'][0] }}"
+      run_once: true
+  when: check_cni is failed
+
+- name: Wait for all the pods to come up
+  shell: kubectl get pods -A -o json
+  register: kubectl_get_pods
+  until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  retries: 20
+  delay: 10

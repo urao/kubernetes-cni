@@ -1,0 +1,15 @@
+---
+#This playbook resets contrail+k8s 
+
+- name: Reset the cluster
+  hosts: master
+  become: true
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  vars_files:
+    - vagrant.yml
+  tasks:
+    - name: Reset
+      shell: "kubeadm reset --force"
+      ignore_errors: true

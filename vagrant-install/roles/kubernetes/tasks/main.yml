@@ -1,0 +1,39 @@
+---
+- name: Create kubelet service.d folder 
+  file: 
+    path: /etc/systemd/system/kubelet.service.d/
+    state: directory
+    mode: 0755
+
+- name: Reload systemd
+  systemd: daemon_reload=yes
+
+- name: Add kubernetes repo
+  yum_repository:
+    name: kubernetes
+    description: Kubernetes repo
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    sslverify: false
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    
+- name: Install k8s packages 
+  yum:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items:
+    - kubeadm-{{ k8s_version }}
+    - kubelet-{{ k8s_version }}
+    - kubectl-{{ k8s_version }} 
+
+- name: All k8s services are enabled on boot
+  service:
+    name: '{{ item }}'
+    enabled: true
+    state: started
+  with_items: "{{ k8s_services }}"

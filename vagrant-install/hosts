@@ -1,13 +1,13 @@
-k8smaster   ansible_host=192.168.0.185 ansible_user=vagrant   ansible_ssh_private_key_file=~/.ssh/id_rsa
-k8snode01   ansible_host=192.168.0.186 ansible_user=vagrant   ansible_ssh_private_key_file=~/.ssh/id_rsa
+k8smaster   ansible_host=192.168.0.185 ansible_user=vagrant   ansible_ssh_private_key_file=C:/cygwin64/home/ext.mumamaheshwarara/.ssh/id_rsa
+k8snode01   ansible_host=192.168.0.186 ansible_user=vagrant   ansible_ssh_private_key_file=C:/cygwin64/home/ext.mumamaheshwarara/.ssh/id_rsa
 
-[all]
+[cluster]
 k8smaster
 k8snode01
 
-[master]
+[masters]
 k8smaster
 
-[worker]
+[workers]
 k8snode01
 
