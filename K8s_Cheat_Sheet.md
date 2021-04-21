@@ -86,5 +86,21 @@ kubectl get rule -n istio-system
 kubectl run np-web --image=nginx --labels app=web --expose --port 80
 ```
 
+```
+kubectl get nodes --show-labels 
+kubectl label node 192.168.0.185 node-role.kubernetes.io/master=true
+kubectl label node 192.168.0.185 node-role.kubernetes.io/master-
+kubectl  get pods --no-headers=true -n kube-system
+kubectl get nodes --show-labels | tail -n +2 | awk '{print $1" "$5}'
+```
+
+2. Allow pods on master node
+```
+kubectl taint nodes --all node-role.kubernetes.io/master-
+```
+
+
+
+
 ## Reference
 [Kubernetes](https://kubernetes.io/)
