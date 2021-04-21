@@ -71,13 +71,12 @@ containerd_version: 1.2.13
 k8s_services:
   - kubelet
 
-linux_kernel_url: https://linuxsoft.cern.ch/cern/centos/7/updates/x86_64/Packages/
-kernel_version: kernel-3.10.0-1127.13.1.el7.x86_64.rpm 
-
+#ssh keys for passwordless login
 urao_mbp_ssh_key: ""
 
 #Contrail related
-
+linux_kernel_url: https://linuxsoft.cern.ch/cern/centos/7/updates/x86_64/Packages/
+kernel_version: kernel-3.10.0-1127.13.1.el7.x86_64.rpm 
 pod_network_cidr: 10.32.0.0/24
 svc_network_cidr: 10.96.0.0/24
 ipfabric_network_cidr: 192.168.0.0/24

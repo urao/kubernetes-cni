@@ -3,3 +3,7 @@ centos*
 .vagrant
 *.retry
 backup*
+*.github
+*.orig
+*.urao
+hosts
