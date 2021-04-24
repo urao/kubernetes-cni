@@ -1,0 +1,22 @@
+---
+- name: Install kernel version rpm 
+  yum:
+    name: "{{ linux_kernel_url }}{{ kernel_version }}"
+    state: present
+
+- name: Remake grub config to reboot with new kernel
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+    
+- name: Restart node to ensure configuration changes take place
+  shell: 'sleep 5 && shutdown -r now "Reboot triggered by Ansible" && sleep 5'
+  async: 1
+  poll: 0
+  become: true
+    
+- name: Wait for the  node to reboot 
+  local_action: 
+    module: wait_for
+      host={{ inventory_hostname }}
+      port=22
+      delay=10
+  become: false

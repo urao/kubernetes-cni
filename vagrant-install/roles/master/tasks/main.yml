@@ -21,6 +21,9 @@
         create: yes
         line: KUBELET_EXTRA_ARGS=--node-ip={{ master_node_ipaddress }}
     
+          #- name: Pull in the images first
+          #command: kubeadm config images pull
+
     - name: Initialize k8s cluster 
       command: kubeadm init \
                --apiserver-advertise-address={{ master_node_ipaddress }} \
@@ -29,8 +32,8 @@
                --service-cidr={{ svc_network_cidr }} \
                --apiserver-cert-extra-sans={{ master_node_ipaddress }} \
                --node-name={{ inventory_hostname_short }}
-      environment: 
-        no_proxy: "$no_proxy,.svc,.svc.cluster.local"
+      #environment: 
+      #  no_proxy: "$no_proxy,.svc,.svc.cluster.local"
       register: init_cluster_res
     
     - name: Setup kubeconfig for vagrant user 
@@ -66,3 +69,5 @@
     enabled: yes
     state: started
     daemon_reload: yes
+
+#--image-repository registry.aliyuncs.com/google_containers \

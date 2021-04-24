@@ -10,12 +10,12 @@
 
 - name: Add kubernetes repo
   yum_repository:
-    name: kubernetes
-    description: Kubernetes repo
+    name: Kubernetes
+    description: Kubernetes 
     enabled: true
     gpgcheck: true
     repo_gpgcheck: true
-    sslverify: false
+    #sslverify: false
     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
     gpgkey:
       - https://packages.cloud.google.com/yum/doc/yum-key.gpg

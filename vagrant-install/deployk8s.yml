@@ -15,6 +15,7 @@
     - { role: containerd, when: container_engine == 'containerd' }
     - { role: rkt, when: container_engine == 'rkt' }
     - { role: kubernetes, when: deploy_k8s }
+    - { role: upgrade-kernel, when: upgrade_kernel }
 
 - name: Kubeadm init on master, and start services 
   hosts: masters
@@ -48,6 +49,8 @@
   vars_files:
     - vagrant.yml
   roles:
-    - { role: cni, when: install_contrail_cni }
+    - { role: contrail-cni, when: install_contrail_cni }
+    - { role: calico-cni, when: install_calico_cni }
     - { role: metallb, when: install_metallb }
     - { role: helm, when: install_helm }
+    - { role: portainer, when: install_portainer }

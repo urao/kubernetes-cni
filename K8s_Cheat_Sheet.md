@@ -92,6 +92,7 @@ kubectl label node 192.168.0.185 node-role.kubernetes.io/master=true
 kubectl label node 192.168.0.185 node-role.kubernetes.io/master-
 kubectl  get pods --no-headers=true -n kube-system
 kubectl get nodes --show-labels | tail -n +2 | awk '{print $1" "$5}'
+journalctl -u kubelet
 ```
 
 2. Allow pods on master node
@@ -99,6 +100,13 @@ kubectl get nodes --show-labels | tail -n +2 | awk '{print $1" "$5}'
 kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
 
+3. Monitor events
+```
+docker run -v /var/run/docker.sock:/var/run/docker.sock -ti alpine sh
+apk update && apk add curl
+
+curl --unix-socket /var/run/docker.sock http://localhost/events
+```
 
 
 

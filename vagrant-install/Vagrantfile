@@ -79,9 +79,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       else
         net_cfg[:type] = 'dhcp'
       end
-      #conf.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)", ip: server['ipaddress']
+      conf.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: server['ipaddress']
       #conf.vm.network "public_network", bridge: "Intel(R) Wi-Fi 6 AX200 160MHz", adapter:"1", ip: server['ipaddress']
-      conf.vm.network "public_network", bridge: "Intel(R) Wi-Fi 6 AX200 160MHz", ip: server['ipaddress'], netmask: "255.255.255.0"
+      #conf.vm.network "public_network", bridge: "Intel(R) Wi-Fi 6 AX200 160MHz", ip: server['ipaddress'], netmask: "255.255.255.0"
       #  auto_config: false
       conf.vm.network "forwarded_port", guest: 22, host: "#{2810 + index}"
 
@@ -100,8 +100,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         trigger.info = "Booting up the machine!!!!!"
       end
       #ssh keys
-      #conf.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
-      conf.ssh.private_key_path = ["C:/Users/mumamaheshwarara/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
+      conf.ssh.private_key_path = ["~/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
+      #conf.ssh.private_key_path = ["C:/Users/mumamaheshwarara/.vagrant.d/insecure_private_key", vars['ssh_key_file']]
       conf.ssh.insert_key = false
       conf.vm.provision "file", source: vars['ssh_key_file'] + ".pub", destination: "~/.ssh/authorized_keys"
       #append my laptop keys
@@ -131,14 +131,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #SERVERS LOOP
   end
   #ANSIBLE DEPLOYMENT
-  if !Vagrant::Util::Platform.windows?
-    conf.vm.provision "ansible" do |ansible|
-      ansible.inventory_path = ansible_inventory_path
-      ansible.v = "v"
-      ansible.limit = "all"
-      ansible.playbook = ansible_playbook
-    end
-  end
+    #if !Vagrant::Util::Platform.windows?
+        #config.vm.provision "ansible" do |ansible|
+        #ansible.inventory_path = ansible_inventory_path
+        ##ansible.v = "v"
+        #ansible.limit = "all"
+        #ansible.playbook = ansible_playbook
+      #end
+  #end
   #RUN SCRIPT to install pkgs via ANSIBLE 
   #conf.vm.provision :shell, path:"./scripts/setup-k8s.sh"
 #END

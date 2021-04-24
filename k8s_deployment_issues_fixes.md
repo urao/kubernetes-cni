@@ -32,3 +32,13 @@ kubectl get nodes -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.tai
 kubectl get nodes \
 -o custom-columns=NAME:.metadata.name,ARCH:.status.nodeInfo.architecture,KERNEL:.status.nodeInfo.kernelVersion,KUBLET:.status.nodeInfo.kubeletVersion,CPU:.status.capacity.cpu,RAM:.status.capacity.memory
 ```
+
+#### Debug a crashloop pod
+```
+docker ps -a | grep private-reg
+docker logs -f <container id>.  << docker logs
+kubectl describe pods private-reg
+kubectl --v=8 logs private-reg:
+kubectl --v=8 logs ps-agent-2028336249-3pk43 --namespace=default -p
+check entrypoint : kubectl logs <pod name> --namespace <ns>
+```

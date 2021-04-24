@@ -7,23 +7,23 @@
 
 servers:
   - hostname: k8smaster
-    ipaddress: 192.168.0.185
-    ram: 8192
-    cpu: 4
-    disksize: 40G
-    group: masters
-  - hostname: k8snode01
-    ipaddress: 192.168.0.186
-    ram: 4096
+    ipaddress: 192.168.0.187
+    ram: 2048
     cpu: 2
     disksize: 20G
+    group: masters
+  - hostname: k8snode01
+    ipaddress: 192.168.0.188
+    ram: 2048
+    cpu: 2
+    disksize: 10G
     group: workers
 
 #box_image: "hoot/centos7-minimal"
 #box_image: "bento/centos-8"
 box_image: "generic/centos7"
-#ssh_key_file: "~/.ssh/id_rsa"
-ssh_key_file: "C:/cygwin64/home/mumamaheshwarara/.ssh/id_rsa"
+ssh_key_file: "~/.ssh/id_rsa"
+#ssh_key_file: "C:/cygwin64/home/mumamaheshwarara/.ssh/id_rsa"
 rc_local_file: ./scripts/rc-local-file.sh
 
 ansible_user: vagrant
@@ -66,7 +66,7 @@ container_engine: docker
 #k8s_docker_version: 18.09.9
 k8s_docker_version: 19.03.11
 enable_dashboard: true
-k8s_version: 1.18.9
+k8s_version: 1.21.0
 containerd_version: 1.2.13
 k8s_services:
   - kubelet
@@ -75,6 +75,7 @@ k8s_services:
 urao_mbp_ssh_key: ""
 
 #Contrail related
+upgrade_kernel: false
 linux_kernel_url: https://linuxsoft.cern.ch/cern/centos/7/updates/x86_64/Packages/
 kernel_version: kernel-3.10.0-1127.13.1.el7.x86_64.rpm 
 pod_network_cidr: 10.32.0.0/24
@@ -93,8 +94,16 @@ metallb_version: v0.7.3
 metallb_url_yml: "https://raw.githubusercontent.com/google/metallb/{{ metallb_version }}/manifests/metallb.yaml"
 metallb_address_space: 192.168.0.200-192.168.0.210
 
+# helm
+helm_version: 3
+helm_3_url: "https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3"
+#helm_version: 2
+#helm_2_url: "https://raw.githubusercontent.com/helm/helm/master/scripts/get"
+
+
 # enable k8s/extras
 deploy_k8s: true
-install_contrail_cni: true
+install_contrail_cni: false
 install_metallb: false
 install_helm: false
+install_portainer: false

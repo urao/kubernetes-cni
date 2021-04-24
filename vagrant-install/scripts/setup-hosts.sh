@@ -9,6 +9,6 @@ sed -e '/${HOSTNAME}/d' -i /etc/hosts
 
 # Update /etc/hosts about other hosts
 cat >> /etc/hosts <<EOF
-192.168.0.185  k8smaster k8smaster
-192.168.0.186  k8snode01 k8snode01
+192.168.0.187  k8smaster k8smaster
+192.168.0.188  k8snode01 k8snode01
 EOF
