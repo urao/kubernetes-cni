@@ -108,6 +108,21 @@ apk update && apk add curl
 curl --unix-socket /var/run/docker.sock http://localhost/events
 ```
 
+4. Create Docker Registry Secret
+```
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+data:
+  .dockerconfigjson: $(echo "{\"auths\": {\"https://index.docker.io/v1/\": {\"auth\": 
+            \"$(echo "JNPR-CustXXXXX:xxxxxxxxxxx" | base64)\"}}}" | base64)
+type: kubernetes.io/dockerconfigjson
+EOF
+```
+
 
 
 ## Reference
