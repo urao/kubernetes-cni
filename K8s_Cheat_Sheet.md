@@ -122,8 +122,22 @@ data:
 type: kubernetes.io/dockerconfigjson
 EOF
 ```
+5. Delete namespace in terminating state
+```
+kubectl get namespace "contrail" -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/contrail/finalize -f -
+```
 
+```
+kubectl get namespace "contrail-analytics" -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/contrail-analytics/finalize -f -
+```
 
+```
+kubectl get namespace "contrail-deploy" -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/contrail-deploy/finalize -f -
+```
+
+```
+kubectl get namespace "contrail-system" -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/contrail-system/finalize -f -
+```
 
 ## Reference
 [Kubernetes](https://kubernetes.io/)
