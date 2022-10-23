@@ -149,6 +149,10 @@ kubectl delete all --all -n <namespace>
 kubectl delete namespace <namespace>
 ```
 
+7. Patch
+```
+kubectl patch svc portal -n contrail-analytics --type='json' -p '[{"op":"replace","path":"/spec/type","value":"NodePort"}]'
+```
 
 ## Reference
 [Kubernetes](https://kubernetes.io/)
