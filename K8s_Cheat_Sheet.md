@@ -153,6 +153,10 @@ kubectl delete namespace <namespace>
 ```
 kubectl patch svc portal -n contrail-analytics --type='json' -p '[{"op":"replace","path":"/spec/type","value":"NodePort"}]'
 ```
+8. Pods not running
+```
+kubectl get pods --field-selector status.phase!=Running --all-namespaces
+```
 
 ## Reference
 [Kubernetes](https://kubernetes.io/)
